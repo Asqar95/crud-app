@@ -12,7 +12,7 @@ type Books struct {
 	db *sql.DB
 }
 
-func New1Books(db *sql.DB) *Books {
+func NewBooks(db *sql.DB) *Books {
 	return &Books{db}
 }
 

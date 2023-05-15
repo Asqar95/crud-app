@@ -36,7 +36,7 @@ func (b *Books) GetByID(ctx context.Context, id int64) (domain.Book, error) {
 	return b.repo.GetByID(ctx, id)
 }
 
-func (b *Books) GetByAll(ctx context.Context) ([]domain.Book, error) {
+func (b *Books) GetAll(ctx context.Context) ([]domain.Book, error) {
 	return b.repo.GetAll(ctx)
 }
 
