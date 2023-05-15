@@ -1,30 +1,48 @@
 package main
 
 import (
+	"github.com/Asqar95/crud-app/internal/config"
 	"github.com/Asqar95/crud-app/internal/repository/psql"
 	"github.com/Asqar95/crud-app/internal/service"
 	"github.com/Asqar95/crud-app/internal/transport/rest"
 	"github.com/Asqar95/crud-app/pkg/database"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"net/http"
+	"os"
 	"time"
 )
 
+const (
+	CONFIG_DIR  = "config"
+	CONFIG_FILE = "main"
+)
+
+func init() {
+	log.SetFormatter(&log.JSONFormatter{})
+	log.SetOutput(os.Stdout)
+	log.SetLevel(log.InfoLevel)
+}
+
 func main() {
+	cfg, err := config.New(CONFIG_DIR, CONFIG_FILE)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("config: %+v\n", cfg)
+
 	//init db
 	db, err := database.NewPostgresConnection(database.ConnectionInfo{
-		Host:     "localhost",
-		Port:     5432,
-		Username: "crudapp",
-		DBName:   "crudapp",
-		SSLMode:  "disable",
-		Password: "crudapp",
+		Host:     cfg.DB.Host,
+		Port:     cfg.DB.Port,
+		Username: cfg.DB.Username,
+		DBName:   cfg.DB.Name,
+		SSLMode:  cfg.DB.SSLMode,
+		Password: cfg.DB.Password,
 	})
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer db.Close()
-
 	//init deps
 	booksRepo := psql.NewBooks(db)
 	booksService := service.NewBooks(booksRepo)
