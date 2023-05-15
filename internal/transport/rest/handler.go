@@ -2,9 +2,13 @@ package rest
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"github.com/Asqar95/crud-app/internal/domain"
 	"github.com/gorilla/mux"
+	"log"
 	"net/http"
+	"strconv"
 )
 
 type Books interface {
@@ -38,4 +42,47 @@ func (h *Handler) InitRouter() *mux.Router {
 		books.HandleFunc("/{id:[0-9]+}", h.updateBook).Methods(http.MethodPut)
 	}
 	return r
+}
+
+func (h *Handler) getBookByID(w http.ResponseWriter, r *http.Request) {
+	id, err := getIdFomRequest(r)
+	if err != nil {
+		log.Println("getBookById() error:", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	book, err := h.booksService.GetByID(context.TODO(), id)
+	if err != nil {
+		if errors.Is(err, domain.ErrBookNotFound) {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		log.Println("getBookById() error:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	response, err := json.Marshal(book)
+	if err != nil {
+		log.Println("getBookById() error:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.Header().Add("Context-Type", "application/json")
+	w.Write(response)
+}
+
+func getIdFomRequest(r *http.Request) (int64, error) {
+	vars := mux.Vars(r)
+	id, err := strconv.ParseInt(vars["id"], 10, 64)
+	if err != nil {
+		return 0, err
+	}
+	if id == 0 {
+		return 0, errors.New("id can`t be 0")
+
+		return id, err
+	}
 }
