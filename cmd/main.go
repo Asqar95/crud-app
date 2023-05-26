@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/Asqar95/crud-app/internal/config"
 	"github.com/Asqar95/crud-app/internal/repository/psql"
 	"github.com/Asqar95/crud-app/internal/service"
@@ -13,8 +14,8 @@ import (
 )
 
 const (
-	CONFIG_DIR  = "config"
-	CONFIG_FILE = "main"
+	ConfigDir  = "configs"
+	ConfigFile = "main"
 )
 
 func init() {
@@ -24,7 +25,7 @@ func init() {
 }
 
 func main() {
-	cfg, err := config.New(CONFIG_DIR, CONFIG_FILE)
+	cfg, err := config.New(ConfigDir, ConfigFile)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -34,10 +35,10 @@ func main() {
 	db, err := database.NewPostgresConnection(database.ConnectionInfo{
 		Host:     cfg.DB.Host,
 		Port:     cfg.DB.Port,
-		Username: cfg.DB.Username,
-		DBName:   cfg.DB.Name,
+		Username: "crudapp",
+		DBName:   "crudapp",
 		SSLMode:  cfg.DB.SSLMode,
-		Password: cfg.DB.Password,
+		Password: "crudapp",
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -50,7 +51,7 @@ func main() {
 
 	// init & run server
 	srv := &http.Server{
-		Addr:    ":8000",
+		Addr:    fmt.Sprintf(":%d", cfg.Server.Port),
 		Handler: handler.InitRouter(),
 	}
 
