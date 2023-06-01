@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	ConfigDir  = "configs"
-	ConfigFile = "main"
+	CONFIG_DIR  = "configs"
+	CONFIG_FILE = "main"
 )
 
 func init() {
@@ -25,20 +25,20 @@ func init() {
 }
 
 func main() {
-	cfg, err := config.New(ConfigDir, ConfigFile)
+	cfg, err := config.New(CONFIG_DIR, CONFIG_FILE)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Printf("config: %+v\n", cfg)
 
+	log.Printf("config: %+v\n", cfg)
 	//init db
 	db, err := database.NewPostgresConnection(database.ConnectionInfo{
 		Host:     cfg.DB.Host,
 		Port:     cfg.DB.Port,
-		Username: "crudapp",
-		DBName:   "crudapp",
+		Username: cfg.DB.Username,
+		DBName:   cfg.DB.Name,
 		SSLMode:  cfg.DB.SSLMode,
-		Password: "crudapp",
+		Password: cfg.DB.Password,
 	})
 	if err != nil {
 		log.Fatal(err)
