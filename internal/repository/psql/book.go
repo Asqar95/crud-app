@@ -24,8 +24,8 @@ func (b *Books) Create(ctx context.Context, book domain.Book) error {
 
 func (b *Books) GetByID(ctx context.Context, id int64) (domain.Book, error) {
 	var book domain.Book
-	err := b.db.QueryRow("SELECT id, title, publish_date, rating FROM books WHERE id=$1", id).
-		Scan(&book.ID, book.Title, &book.Author, &book.PublishDate, &book.Rating)
+	err := b.db.QueryRow("SELECT id, title, author, publish_date, rating FROM books WHERE id=$1", id).
+		Scan(&book.ID, &book.Title, &book.Author, &book.PublishDate, &book.Rating)
 	if err == sql.ErrNoRows {
 		return book, domain.ErrBookNotFound
 	}

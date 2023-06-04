@@ -7,7 +7,9 @@ import (
 	"github.com/Asqar95/crud-app/internal/service"
 	"github.com/Asqar95/crud-app/internal/transport/rest"
 	"github.com/Asqar95/crud-app/pkg/database"
+	"github.com/go-chi/chi"
 	log "github.com/sirupsen/logrus"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
 	"net/http"
 	"os"
 	"time"
@@ -50,6 +52,14 @@ func main() {
 		log.Fatal(err)
 	}
 
+	r := chi.NewRouter()
+
+	r.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("http://localhost:1323/swagger/doc.json"), //The url pointing to API definition
+	))
+
+	http.ListenAndServe(":8080", r)
+
 	log.Printf("config: %+v\n", cfg)
 	//init db
 	db, err := database.NewPostgresConnection(database.ConnectionInfo{
@@ -80,4 +90,6 @@ func main() {
 	if err := srv.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}
+
+	http.ListenAndServe(fmt.Sprintf(":%d", cfg.Server.Port), r)
 }
