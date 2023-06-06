@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"errors"
 	"github.com/Asqar95/crud-app/internal/domain"
 	"github.com/gin-gonic/gin"
 	"io"
@@ -10,12 +11,19 @@ import (
 )
 
 func (h *Handler) getBookByID(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := getIdFomRequest(c)
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
+		return
+	}
+
+	id, err := h.services.GetByID(id)
 }
 
 func (h *Handler) createBook(w http.ResponseWriter, r *http.Request) {
@@ -106,4 +114,18 @@ func (h *Handler) updateBook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func getIdFomRequest(c *gin.Context) (int, error) {
+	id, ok := c.Get("id")
+	if !ok {
+		newErrorResponse(c,http.StatusInternalServerError,"book id not found")
+		return 0,errors.New("book id not found")
+	}
+	idInt, ok := id.(int)
+	if !ok {
+		newErrorResponse(c, http.StatusInternalServerError, "book id is of invalid type")
+		return 0, errors.New("book id not found")
+	}
+	return idInt, nil
 }
