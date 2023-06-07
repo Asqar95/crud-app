@@ -1,14 +1,14 @@
 package main
 
 import (
-	"fmt"
+	"github.com/Asqar95/crud-app"
 	"github.com/Asqar95/crud-app/internal/config"
 	"github.com/Asqar95/crud-app/internal/repository/psql"
 	"github.com/Asqar95/crud-app/internal/service"
 	"github.com/Asqar95/crud-app/internal/transport/rest"
-	"github.com/Asqar95/crud-app/pkg/database"
-	log "github.com/sirupsen/logrus"
-	"net/http"
+	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"os"
 	"time"
 )
@@ -19,45 +19,42 @@ const (
 )
 
 func init() {
-	log.SetFormatter(&log.JSONFormatter{})
-	log.SetOutput(os.Stdout)
-	log.SetLevel(log.InfoLevel)
+	logrus.SetFormatter(new(logrus.JSONFormatter))
+	logrus.SetOutput(os.Stdout)
+	logrus.SetLevel(logrus.InfoLevel)
 }
 
 func main() {
 	cfg, err := config.New(CONFIG_DIR, CONFIG_FILE)
 	if err != nil {
-		log.Fatal(err)
+		logrus.Fatal(err)
 	}
 
-	log.Printf("config: %+v\n", cfg)
-	//init db
-	db, err := database.NewPostgresConnection(database.ConnectionInfo{
-		Host:     cfg.DB.Host,
-		Port:     cfg.DB.Port,
-		Username: cfg.DB.Username,
-		DBName:   cfg.DB.Name,
-		SSLMode:  cfg.DB.SSLMode,
-		Password: cfg.DB.Password,
-	})
-	if err != nil {
-		log.Fatal(err)
+	if err := godotenv.Load(); err != nil {
+		logrus.Fatalf("error loading env variables: %s", err.Error())
 	}
-	defer db.Close()
+
+	logrus.Printf("config: %+v\n", cfg)
+	//init db
+	//repository.NewPostgresDB(repository.Config{
+	db, err := repository.NewPostgresDB(repository.Config{
+		Host:     viper.GetString("db.host"),
+		Port:     viper.GetString("db.port"),
+		Username: viper.GetString("db.username"),
+		DBName:   viper.GetString("db.dbname"),
+		SSLMode:  viper.GetString("db.sslmode"),
+		Password: os.Getenv("DB_PASSWORD"),
+	})
+
 	//init deps
-	booksRepo := psql.NewBooks(db)
-	booksService := service.NewBooks(booksRepo)
-	handler := rest.NewHandler(booksService)
+	repos := repository.NewRepository(db)
+	services := service.NewService(repos)
+	handlers := handler.NewHandler(services)
 
 	// init & run server
-	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%d", cfg.Server.Port),
-		Handler: handler.InitRouter(),
+	srv := new(crud_app.Server)
+	if err := srv.Run(viper.GetString("port"), handlers.InitRouters()); err != nil {
+		logrus.Fatalf("error occured while running server: %s", err.Error())
 	}
-
-	log.Println("SERVER STARTED AT", time.Now().Format(time.RFC3339))
-
-	if err := srv.ListenAndServe(); err != nil {
-		log.Fatal(err)
-	}
+	logrus.Println("SERVER STARTED AT", time.Now().Format(time.RFC3339))
 }

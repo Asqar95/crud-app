@@ -1,27 +1,28 @@
-package psql
+package repository
 
 import (
 	"database/sql"
 	"fmt"
 	"github.com/Asqar95/crud-app/internal/domain"
+	"github.com/jmoiron/sqlx"
 	"strings"
 )
 
-type Books struct {
-	db *sql.DB
+type BooksPostgres struct {
+	db *sqlx.DB
 }
 
-func NewBooks(db *sql.DB) *Books {
-	return &Books{db}
+func NewBookPostgres(db *sqlx.DB) *BooksPostgres {
+	return &BooksPostgres{db: db}
 }
 
-func (b *Books) Create(book domain.Book) error {
+func (b *BooksPostgres) Create(book domain.Book) error {
 	_, err := b.db.Exec("INSERT INTO books (title, author, publish_date, rating) values ($1, $2,$3, $4)",
 		book.Title, book.Author, book.PublishDate, book.Rating)
 	return err
 }
 
-func (b *Books) GetByID(id int64) (domain.Book, error) {
+func (b *BooksPostgres) GetByID(id int64) (domain.Book, error) {
 	var book domain.Book
 	err := b.db.QueryRow("SELECT id, title, publish_date, rating FROM books WHERE id=$1", id).
 		Scan(&book.ID, book.Title, &book.Author, &book.PublishDate, &book.Rating)
@@ -31,7 +32,7 @@ func (b *Books) GetByID(id int64) (domain.Book, error) {
 	return book, err
 }
 
-func (b *Books) GetAll() ([]domain.Book, error) {
+func (b *BooksPostgres) GetAll() ([]domain.Book, error) {
 	rows, err := b.db.Query("SELECT id, title, author, publish_date, rating FROM books")
 	if err != nil {
 		return nil, err
@@ -49,12 +50,12 @@ func (b *Books) GetAll() ([]domain.Book, error) {
 	return books, rows.Err()
 }
 
-func (b *Books) Delete(id int64) error {
+func (b *BooksPostgres) Delete(id int64) error {
 	_, err := b.db.Exec("DELETE FROM books WHERE id=$1", id)
 	return err
 }
 
-func (b *Books) Update(id int64, inp domain.UpdateBookInput) error {
+func (b *BooksPostgres) Update(id int64, inp domain.UpdateBookInput) error {
 	setValues := make([]string, 0)
 	args := make([]interface{}, 0)
 	argId := 1
