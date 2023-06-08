@@ -16,13 +16,13 @@ func NewBookPostgres(db *sqlx.DB) *BooksPostgres {
 	return &BooksPostgres{db: db}
 }
 
-func (b *BooksPostgres) Create(book domain.Book) error {
-	_, err := b.db.Exec("INSERT INTO books (title, author, publish_date, rating) values ($1, $2,$3, $4)",
+func (b *BooksPostgres) Create(book domain.Book) {
+	_, _ = b.db.Exec("INSERT INTO books (title, author, publish_date, rating) values ($1, $2,$3, $4)",
 		book.Title, book.Author, book.PublishDate, book.Rating)
-	return err
+	return
 }
 
-func (b *BooksPostgres) GetByID(id int64) (domain.Book, error) {
+func (b *BooksPostgres) GetByID(id int) (domain.Book, error) {
 	var book domain.Book
 	err := b.db.QueryRow("SELECT id, title, publish_date, rating FROM books WHERE id=$1", id).
 		Scan(&book.ID, book.Title, &book.Author, &book.PublishDate, &book.Rating)
@@ -50,12 +50,12 @@ func (b *BooksPostgres) GetAll() ([]domain.Book, error) {
 	return books, rows.Err()
 }
 
-func (b *BooksPostgres) Delete(id int64) error {
+func (b *BooksPostgres) Delete(id int) error {
 	_, err := b.db.Exec("DELETE FROM books WHERE id=$1", id)
 	return err
 }
 
-func (b *BooksPostgres) Update(id int64, inp domain.UpdateBookInput) error {
+func (b *BooksPostgres) Update(id int, inp domain.UpdateBookInput) error {
 	setValues := make([]string, 0)
 	args := make([]interface{}, 0)
 	argId := 1

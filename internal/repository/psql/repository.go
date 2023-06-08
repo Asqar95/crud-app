@@ -10,11 +10,11 @@ type Repository struct {
 }
 
 type Books interface {
-	Create(book domain.Book) error
-	GetByID(id int64) (domain.Book, error)
+	Create(book domain.Book)
+	GetByID(id int) (domain.Book, error)
 	GetAll() ([]domain.Book, error)
-	Delete(id int64) error
-	Update(id int64, inp domain.UpdateBookInput) error
+	Delete(id int) error
+	Update(id int, inp domain.UpdateBookInput) error
 }
 
 func NewRepository(db *sqlx.DB) *Repository {

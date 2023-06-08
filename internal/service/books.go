@@ -7,22 +7,21 @@ import (
 )
 
 type BooksService struct {
-	repo repository.Repository
+	repo repository.Books
 }
 
-func NewBooksService(repo repository.Repository) *BooksService {
+func NewBooksService(repo repository.Books) *BooksService {
 	return &BooksService{repo: repo}
 }
 
-func (b *BooksService) Create(book domain.Book) error {
+func (b *BooksService) Create(book domain.Book) {
 	if book.PublishDate.IsZero() {
 		book.PublishDate = time.Now()
 	}
-
-	return nil
+	return
 }
 
-func (b *BooksService) GetByID(id int64) (domain.Book, error) {
+func (b *BooksService) GetByID(id int) (domain.Book, error) {
 	return b.repo.GetByID(id)
 }
 
@@ -30,10 +29,10 @@ func (b *BooksService) GetAll() ([]domain.Book, error) {
 	return b.repo.GetAll()
 }
 
-func (b *BooksService) Delete(id int64) error {
+func (b *BooksService) Delete(id int) error {
 	return b.repo.Delete(id)
 }
 
-func (b *BooksService) Update(id int64, inp domain.UpdateBookInput) error {
+func (b *BooksService) Update(id int, inp domain.UpdateBookInput) error {
 	return b.repo.Update(id, inp)
 }
