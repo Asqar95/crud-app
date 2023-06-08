@@ -3,7 +3,6 @@ package service
 import (
 	"github.com/Asqar95/crud-app/internal/domain"
 	"github.com/Asqar95/crud-app/internal/repository/psql"
-	"time"
 )
 
 type BooksService struct {
@@ -14,25 +13,22 @@ func NewBooksService(repo repository.Books) *BooksService {
 	return &BooksService{repo: repo}
 }
 
-func (b *BooksService) Create(book domain.Book) {
-	if book.PublishDate.IsZero() {
-		book.PublishDate = time.Now()
-	}
-	return
+func (s *BooksService) Create(id int, book domain.Book) (int, error) {
+	return s.repo.Create(id, book)
 }
 
-func (b *BooksService) GetByID(id int) (domain.Book, error) {
-	return b.repo.GetByID(id)
+func (s *BooksService) GetByID(id int) (domain.Book, error) {
+	return s.repo.GetByID(id)
 }
 
-func (b *BooksService) GetAll() ([]domain.Book, error) {
-	return b.repo.GetAll()
+func (s *BooksService) GetAll() ([]domain.Book, error) {
+	return s.repo.GetAll()
 }
 
-func (b *BooksService) Delete(id int) error {
-	return b.repo.Delete(id)
+func (s *BooksService) Delete(id int) error {
+	return s.repo.Delete(id)
 }
 
-func (b *BooksService) Update(id int, inp domain.UpdateBookInput) error {
-	return b.repo.Update(id, inp)
+func (s *BooksService) Update(id int, inp domain.UpdateBookInput) error {
+	return s.repo.Update(id, inp)
 }

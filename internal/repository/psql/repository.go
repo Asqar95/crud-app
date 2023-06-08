@@ -10,7 +10,7 @@ type Repository struct {
 }
 
 type Books interface {
-	Create(book domain.Book)
+	Create(id int, book domain.Book) (int, error)
 	GetByID(id int) (domain.Book, error)
 	GetAll() ([]domain.Book, error)
 	Delete(id int) error

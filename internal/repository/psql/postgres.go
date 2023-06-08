@@ -6,6 +6,10 @@ import (
 	_ "github.com/lib/pq"
 )
 
+const (
+	books = "books"
+)
+
 type Config struct {
 	Host     string
 	Port     string
