@@ -15,13 +15,13 @@ func NewBookPostgres(db *sqlx.DB) *BooksPostgres {
 	return &BooksPostgres{db: db}
 }
 
-func (r *BooksPostgres) Create(id int, book domain.Book) (int, error) {
+func (r *BooksPostgres) Create(book domain.Book) (int, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return 0, err
 	}
 	var bookId int
-	createBookQuery := fmt.Sprintf("INSERT INTO %s (title, author, publish_date, rating) values ($1, $2,$3, $4) RETURNING id", books)
+	createBookQuery := fmt.Sprintf("INSERT INTO %s (title, author, publish_date, rating) values ($1,$2,$3,$4) RETURNING id", books)
 	row := tx.QueryRow(createBookQuery, book.Title, book.Author, book.PublishDate, book.Rating)
 	err = row.Scan(&bookId)
 	if err != nil {
@@ -33,31 +33,25 @@ func (r *BooksPostgres) Create(id int, book domain.Book) (int, error) {
 
 func (r *BooksPostgres) GetByID(id int) (domain.Book, error) {
 	var book domain.Book
-	query := fmt.Sprintf("SELECT id, title, publish_date, rating FROM books WHERE id=$1", id).
-		Scan(&book.ID, book.Title, &book.Author, &book.PublishDate, &book.Rating)
-	return book, err
+	query := fmt.Sprintf("SELECT id, title, publish_date, rating FROM %s WHERE id=$1", books)
+	if err := r.db.Get(&book, query, id); err != nil {
+		return book, err
+	}
+	return book, nil
 }
 
 func (r *BooksPostgres) GetAll() ([]domain.Book, error) {
-	rows, err := r.db.Query("SELECT id, title, author, publish_date, rating FROM books")
-	if err != nil {
+	var books []domain.Book
+	query := fmt.Sprintf("SELECT id, title, author, publish_date, rating FROM %s", books)
+	if err := r.db.Select(&books, query); err != nil {
 		return nil, err
 	}
-
-	books := make([]domain.Book, 0)
-	for rows.Next() {
-		var book domain.Book
-		if err := rows.Scan(&book.ID, &book.Title, &book.Author, &book.PublishDate, &book.Rating); err != nil {
-			return nil, err
-		}
-
-		books = append(books, book)
-	}
-	return books, rows.Err()
+	return books, nil
 }
 
 func (r *BooksPostgres) Delete(id int) error {
-	_, err := r.db.Exec("DELETE FROM books WHERE id=$1", id)
+	query := fmt.Sprintf("DELETE FROM %s WHERE id=$1", books)
+	_, err := r.db.Exec(query, id)
 	return err
 }
 

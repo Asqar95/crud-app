@@ -10,7 +10,7 @@ type Service struct {
 }
 
 type Books interface {
-	Create(id int, book domain.Book) (int, error)
+	Create(book domain.Book) (int, error)
 	GetByID(id int) (domain.Book, error)
 	GetAll() ([]domain.Book, error)
 	Delete(id int) error

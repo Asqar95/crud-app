@@ -13,8 +13,8 @@ func NewBooksService(repo repository.Books) *BooksService {
 	return &BooksService{repo: repo}
 }
 
-func (s *BooksService) Create(id int, book domain.Book) (int, error) {
-	return s.repo.Create(id, book)
+func (s *BooksService) Create(book domain.Book) (int, error) {
+	return s.repo.Create(book)
 }
 
 func (s *BooksService) GetByID(id int) (domain.Book, error) {

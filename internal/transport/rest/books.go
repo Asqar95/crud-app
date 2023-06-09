@@ -8,17 +8,12 @@ import (
 )
 
 func (h *Handler) createBook(c *gin.Context) {
-	bookId, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
-		return
-	}
 	var input domain.Book
 	if err := c.BindJSON(&input); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
-	id, err := h.services.Create(bookId, input)
+	id, err := h.services.Create(input)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
@@ -44,69 +39,56 @@ func (h *Handler) getBookByID(c *gin.Context) {
 	return
 }
 
-func (h *Handler) deleteBook(c *gin.Context) {
-	//id,
-	//if err != nil {
-	//	log.Println("deleteBook() error:", err)
-	//	w.WriteHeader(http.StatusBadRequest)
-	//	return
-	//}
-	//
-	//err = h.booksService.Delete(context.TODO(), id)
-	//if err != nil {
-	//	log.Println("deleteBook() error:", err)
-	//	w.WriteHeader(http.StatusInternalServerError)
-	//	return
-	//}
-	//
-	//w.WriteHeader(http.StatusOK)
+type getAllBooksResponse struct {
+	Data []domain.Book `json:"data"`
 }
 
 func (h *Handler) getAllBooks(c *gin.Context) {
-	//books, err := h.booksService.GetAll(context.TODO())
-	//if err != nil {
-	//	log.Println("getAllBooks() error:", err)
-	//	w.WriteHeader(http.StatusInternalServerError)
-	//	return
-	//}
-	//
-	//response, err := json.Marshal(books)
-	//if err != nil {
-	//	log.Println("getAllBooks() error:", err)
-	//	w.WriteHeader(http.StatusInternalServerError)
-	//	return
-	//}
-	//
-	//w.Header().Add("Content-Type", "application/json")
-	//w.Write(response)
+	books, err := h.services.GetAll()
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, getAllBooksResponse{
+		Data: books,
+	})
+
+}
+
+func (h *Handler) deleteBook(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
+		return
+	}
+	err = h.services.Delete(id)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+	c.JSON(http.StatusOK, statusResponse{
+		Status: "ok",
+	})
 }
 
 func (h *Handler) updateBook(c *gin.Context) {
-	//id, err := getIdFomRequest(r)
-	//if err != nil {
-	//	log.Println("error:", err)
-	//	w.WriteHeader(http.StatusBadRequest)
-	//	return
-	//}
-	//
-	//reqByts, err := io.ReadAll(r.Body)
-	//if err != nil {
-	//	w.WriteHeader(http.StatusBadRequest)
-	//	return
-	//}
-	//
-	//var inp domain.UpdateBookInput
-	//if err = json.Unmarshal(reqByts, &inp); err != nil {
-	//	w.WriteHeader(http.StatusBadRequest)
-	//	return
-	//}
-	//
-	//err = h.booksService.Update(context.TODO(), id, inp)
-	//if err != nil {
-	//	log.Println("error:", err)
-	//	w.WriteHeader(http.StatusInternalServerError)
-	//	return
-	//}
-	//
-	//w.WriteHeader(http.StatusOK)
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
+		return
+	}
+
+	var input domain.UpdateBookInput
+	if err := c.BindJSON(&input); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := h.services.Update(id, input); err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, statusResponse{"ok"})
 }

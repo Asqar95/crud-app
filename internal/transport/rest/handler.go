@@ -23,10 +23,10 @@ func (h *Handler) InitRouters() *gin.Engine {
 		books := api.Group("/books")
 		{
 			books.POST("/", h.createBook)
-			books.GET("/")
-			books.GET(":/id")
-			books.DELETE("/:id")
-			books.PUT("/:id")
+			books.GET("/", h.getAllBooks)
+			books.GET("/:id", h.getBookByID)
+			books.DELETE("/:id", h.deleteBook)
+			books.PUT("/:id", h.updateBook)
 		}
 	}
 	return router
