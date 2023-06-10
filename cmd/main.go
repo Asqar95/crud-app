@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/Asqar95/crud-app"
 	"github.com/Asqar95/crud-app/internal/config"
 	"github.com/Asqar95/crud-app/internal/repository/psql"
 	"github.com/Asqar95/crud-app/internal/service"
@@ -36,7 +35,6 @@ func main() {
 
 	logrus.Printf("config: %+v\n", cfg)
 	//init db
-	//repository.NewPostgresDB(repository.Config{
 	db, err := repository.NewPostgresDB(repository.Config{
 		Host:     viper.GetString("db.host"),
 		Port:     viper.GetString("db.port"),
@@ -52,7 +50,7 @@ func main() {
 	handlers := handler.NewHandler(services)
 
 	// init & run server
-	srv := new(crud_app.Server)
+	srv := new(handler.Server)
 	if err := srv.Run(viper.GetString("port"), handlers.InitRouters()); err != nil {
 		logrus.Fatalf("error occured while running server: %s", err.Error())
 	}

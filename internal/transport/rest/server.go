@@ -1,4 +1,4 @@
-package crud_app
+package handler
 
 import (
 	"context"
