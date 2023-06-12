@@ -18,18 +18,23 @@ import (
 	"time"
 )
 
+// @title CRUD App API
+// @version 1.0
+// @description API Server for TodoList Application
+
+// @host localhost:8080
+// @BasePath /
+
 const (
 	CONFIG_DIR  = "configs"
 	CONFIG_FILE = "main"
 )
 
-func init() {
+func main() {
 	log.SetFormatter(new(log.JSONFormatter))
 	log.SetOutput(os.Stdout)
 	log.SetLevel(log.InfoLevel)
-}
 
-func main() {
 	cfg, err := config.New(CONFIG_DIR, CONFIG_FILE)
 	if err != nil {
 		log.Fatal(err)

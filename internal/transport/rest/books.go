@@ -8,6 +8,13 @@ import (
 	"strconv"
 )
 
+// @Summary Create book
+// @Books lists
+// @Description create book
+// @ID create-list
+// @Accept  json
+// @Produce  json
+// @Router /books [post]
 func (h *Handler) createBook(c *gin.Context) {
 	var input domain.Book
 	if err := c.BindJSON(&input); err != nil {
@@ -28,6 +35,13 @@ func (h *Handler) createBook(c *gin.Context) {
 	})
 }
 
+// @Summary Get book
+// @Books lists
+// @Description create book
+// @ID create-list
+// @Accept  json
+// @Produce  json
+// @Router /books [get]
 func (h *Handler) getBookByID(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -56,6 +70,13 @@ type getAllBooksResponse struct {
 	Data []domain.Book `json:"data"`
 }
 
+// @Summary GetAll
+// @Books lists
+// @Description create book
+// @ID create-list
+// @Accept  json
+// @Produce  json
+// @Router /books [get]
 func (h *Handler) getAllBooks(c *gin.Context) {
 	books, err := h.services.GetAll()
 	if err != nil {
@@ -69,6 +90,13 @@ func (h *Handler) getAllBooks(c *gin.Context) {
 
 }
 
+// @Summary Delete book
+// @Books lists
+// @Description create book
+// @ID create-list
+// @Accept  json
+// @Produce  json
+// @Router /books [delete]
 func (h *Handler) deleteBook(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -85,6 +113,13 @@ func (h *Handler) deleteBook(c *gin.Context) {
 	})
 }
 
+// @Summary Update book
+// @Tags Books
+// @Description create book
+// @ID create-list
+// @Accept  json
+// @Produce  json
+// @Router /books [put]
 func (h *Handler) updateBook(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {

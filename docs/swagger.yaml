@@ -1,0 +1,48 @@
+basePath: /
+host: localhost:8080
+info:
+  contact: {}
+  description: API Server for TodoList Application
+  title: CRUD App API
+  version: "1.0"
+paths:
+  /books:
+    delete:
+      consumes:
+      - application/json
+      description: create book
+      operationId: create-list
+      produces:
+      - application/json
+      responses: {}
+      summary: Delete book
+    get:
+      consumes:
+      - application/json
+      description: create book
+      operationId: create-list
+      produces:
+      - application/json
+      responses: {}
+      summary: GetAll
+    post:
+      consumes:
+      - application/json
+      description: create book
+      operationId: create-list
+      produces:
+      - application/json
+      responses: {}
+      summary: Create book
+    put:
+      consumes:
+      - application/json
+      description: create book
+      operationId: create-list
+      produces:
+      - application/json
+      responses: {}
+      summary: Update book
+      tags:
+      - Books
+swagger: "2.0"

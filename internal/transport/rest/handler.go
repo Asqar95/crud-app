@@ -1,8 +1,11 @@
 package handler
 
 import (
+	_ "github.com/Asqar95/crud-app/docs"
 	"github.com/Asqar95/crud-app/internal/service"
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 type Handler struct {
@@ -17,6 +20,7 @@ func NewHandler(services *service.Service) *Handler {
 
 func (h *Handler) Init() *gin.Engine {
 	router := gin.New()
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	book := router.Group("/book")
 	{
 		book.POST("/", h.createBook)
