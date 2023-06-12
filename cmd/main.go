@@ -1,14 +1,21 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"github.com/Asqar95/crud-app/internal/config"
 	"github.com/Asqar95/crud-app/internal/repository/psql"
+	"github.com/Asqar95/crud-app/internal/server"
 	"github.com/Asqar95/crud-app/internal/service"
 	"github.com/Asqar95/crud-app/internal/transport/rest"
-	"github.com/joho/godotenv"
+	"github.com/Asqar95/crud-app/pkg/database"
+	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
+	"log"
+	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 )
 
@@ -26,23 +33,24 @@ func init() {
 func main() {
 	cfg, err := config.New(CONFIG_DIR, CONFIG_FILE)
 	if err != nil {
-		logrus.Fatal(err)
-	}
-
-	if err := godotenv.Load(); err != nil {
-		logrus.Fatalf("error loading env variables: %s", err.Error())
+		log.Fatal(err)
 	}
 
 	logrus.Printf("config: %+v\n", cfg)
 	//init db
-	db, err := repository.NewPostgresDB(repository.Config{
-		Host:     viper.GetString("db.host"),
-		Port:     viper.GetString("db.port"),
-		Username: viper.GetString("db.username"),
-		DBName:   viper.GetString("db.dbname"),
-		SSLMode:  viper.GetString("db.sslmode"),
-		Password: os.Getenv("DB_PASSWORD"),
+	db, err := database.NewPostgresConnection(database.ConnectionInfo{
+		Host:     cfg.DB.Host,
+		Port:     cfg.DB.Port,
+		Username: cfg.DB.Username,
+		DBName:   cfg.DB.Name,
+		SSLMode:  cfg.DB.SSLMode,
+		Password: cfg.DB.Password,
 	})
+
+	if err != nil {
+		logrus.Fatalf("failed to initialize db: %s", err.Error())
+	}
+	defer db.Close()
 
 	//init deps
 	repos := repository.NewRepository(db)
@@ -50,9 +58,32 @@ func main() {
 	handlers := handler.NewHandler(services)
 
 	// init & run server
-	srv := new(handler.Server)
-	if err := srv.Run(viper.GetString("port"), handlers.InitRouters()); err != nil {
-		logrus.Fatalf("error occured while running server: %s", err.Error())
+	srv := server.NewServer(&http.Server{
+		Addr:           fmt.Sprintf(":%d", cfg.Server.Port),
+		Handler:        handlers.Init(),
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20,
+	})
+
+	go func() {
+		log.Fatal(srv.Run())
+	}()
+
+	log.Println("Starting server on port 8080")
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
+	<-quit
+	fmt.Println("Server shutting down...")
+
+	if err = srv.Shutdown(context.Background()); err != nil {
+		log.Fatal("Failed to shutdown server: ", err)
 	}
-	logrus.Println("SERVER STARTED AT", time.Now().Format(time.RFC3339))
+
+	if err = db.Close(); err != nil {
+		log.Fatal("Failed to close database: ", err)
+	}
+
+	fmt.Println("Server stopped")
 }

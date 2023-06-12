@@ -3,7 +3,7 @@ server:
 
 db:
   host: "localhost"
-  port: "5432"
+  port: 5432
   username: "crudapp"
   name: "crudapp"
   sslmode: "disable"

@@ -15,7 +15,7 @@ func NewHandler(services *service.Service) *Handler {
 	}
 }
 
-func (h *Handler) InitRouters() *gin.Engine {
+func (h *Handler) Init() *gin.Engine {
 	router := gin.New()
 	book := router.Group("/book")
 	{

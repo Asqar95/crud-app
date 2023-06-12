@@ -7,6 +7,10 @@ import (
 	"strings"
 )
 
+const (
+	books = "books"
+)
+
 type BooksPostgres struct {
 	db *sqlx.DB
 }

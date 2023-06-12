@@ -6,7 +6,8 @@ import (
 )
 
 type Config struct {
-	DB     Postgres
+	DB Postgres
+
 	Server struct {
 		Port int `mapstructure:"port"`
 	} `mapstructure:"server"`
