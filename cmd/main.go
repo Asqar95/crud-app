@@ -10,8 +10,7 @@ import (
 	"github.com/Asqar95/crud-app/internal/transport/rest"
 	"github.com/Asqar95/crud-app/pkg/database"
 	_ "github.com/lib/pq"
-	"github.com/sirupsen/logrus"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"os"
 	"os/signal"
@@ -25,9 +24,9 @@ const (
 )
 
 func init() {
-	logrus.SetFormatter(new(logrus.JSONFormatter))
-	logrus.SetOutput(os.Stdout)
-	logrus.SetLevel(logrus.InfoLevel)
+	log.SetFormatter(new(log.JSONFormatter))
+	log.SetOutput(os.Stdout)
+	log.SetLevel(log.InfoLevel)
 }
 
 func main() {
@@ -36,7 +35,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	logrus.Printf("config: %+v\n", cfg)
+	log.Printf("config: %+v\n", cfg)
 	//init db
 	db, err := database.NewPostgresConnection(database.ConnectionInfo{
 		Host:     cfg.DB.Host,
@@ -48,7 +47,7 @@ func main() {
 	})
 
 	if err != nil {
-		logrus.Fatalf("failed to initialize db: %s", err.Error())
+		log.Fatalf("failed to initialize db: %s", err.Error())
 	}
 	defer db.Close()
 

@@ -3,6 +3,7 @@ package handler
 import (
 	"github.com/Asqar95/crud-app/internal/domain"
 	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
 )
@@ -15,6 +16,10 @@ func (h *Handler) createBook(c *gin.Context) {
 	}
 	id, err := h.services.Create(input)
 	if err != nil {
+		log.WithFields(log.Fields{
+			"handler": "createBook",
+			"problem": "reading request body",
+		}).Error(err)
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -26,12 +31,20 @@ func (h *Handler) createBook(c *gin.Context) {
 func (h *Handler) getBookByID(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
+		log.WithFields(log.Fields{
+			"handler": "createBook",
+			"problem": "unmarshaling request",
+		}).Error(err)
 		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
 		return
 	}
 
 	book, err := h.services.Books.GetByID(id)
 	if err != nil {
+		log.WithFields(log.Fields{
+			"handler": "createBook",
+			"problem": "service error",
+		}).Error(err)
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
