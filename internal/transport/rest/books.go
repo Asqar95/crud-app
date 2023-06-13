@@ -9,12 +9,16 @@ import (
 )
 
 // @Summary Create book
-// @Books lists
+// @Tags Books
 // @Description create book
-// @ID create-list
+// @ID createBook
 // @Accept  json
 // @Produce  json
-// @Router /books [post]
+// @Param input body domain.Book true "Book info"
+// @Failure 400,404 {object} errorResponse
+// @Failure 500 {object} errorResponse
+// @Failure default {object} errorResponse
+// @Router /book [post]
 func (h *Handler) createBook(c *gin.Context) {
 	var input domain.Book
 	if err := c.BindJSON(&input); err != nil {
@@ -36,12 +40,14 @@ func (h *Handler) createBook(c *gin.Context) {
 }
 
 // @Summary Get book
-// @Books lists
-// @Description create book
-// @ID create-list
+// @Tags Books
+// @Description Get book by ID
 // @Accept  json
 // @Produce  json
-// @Router /books [get]
+// @Failure 400,404 {object} errorResponse
+// @Failure 500 {object} errorResponse
+// @Failure default {object} errorResponse
+// @Router /book [get]
 func (h *Handler) getBookByID(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -71,11 +77,13 @@ type getAllBooksResponse struct {
 }
 
 // @Summary GetAll
-// @Books lists
+// @Tags Books
 // @Description create book
-// @ID create-list
 // @Accept  json
 // @Produce  json
+// @Failure 400,404 {object} errorResponse
+// @Failure 500 {object} errorResponse
+// @Failure default {object} errorResponse
 // @Router /books [get]
 func (h *Handler) getAllBooks(c *gin.Context) {
 	books, err := h.services.GetAll()
@@ -91,12 +99,14 @@ func (h *Handler) getAllBooks(c *gin.Context) {
 }
 
 // @Summary Delete book
-// @Books lists
+// @Tags Books
 // @Description create book
-// @ID create-list
 // @Accept  json
 // @Produce  json
-// @Router /books [delete]
+// @Failure 400,404 {object} errorResponse
+// @Failure 500 {object} errorResponse
+// @Failure default {object} errorResponse
+// @Router /book [delete]
 func (h *Handler) deleteBook(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -116,10 +126,13 @@ func (h *Handler) deleteBook(c *gin.Context) {
 // @Summary Update book
 // @Tags Books
 // @Description create book
-// @ID create-list
 // @Accept  json
 // @Produce  json
-// @Router /books [put]
+// @Param input body domain.UpdateBookInput true "Book info"
+// @Failure 400,404 {object} errorResponse
+// @Failure 500 {object} errorResponse
+// @Failure default {object} errorResponse
+// @Router /book [put]
 func (h *Handler) updateBook(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {

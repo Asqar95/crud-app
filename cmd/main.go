@@ -20,7 +20,7 @@ import (
 
 // @title CRUD App API
 // @version 1.0
-// @description API Server for TodoList Application
+// @description CRUD Server for Books Application
 
 // @host localhost:8080
 // @BasePath /
