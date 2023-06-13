@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"context"
+	"database/sql"
 	"fmt"
 	"github.com/Asqar95/crud-app/internal/domain"
 	"github.com/jmoiron/sqlx"
@@ -19,7 +21,7 @@ func NewBookPostgres(db *sqlx.DB) *BooksPostgres {
 	return &BooksPostgres{db: db}
 }
 
-func (r *BooksPostgres) Create(book domain.Book) (int, error) {
+func (r *BooksPostgres) Create(ctx context.Context, book domain.Book) (int, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return 0, err
@@ -35,31 +37,43 @@ func (r *BooksPostgres) Create(book domain.Book) (int, error) {
 	return bookId, tx.Commit()
 }
 
-func (r *BooksPostgres) GetByID(id int) (domain.Book, error) {
+func (r *BooksPostgres) GetByID(ctx context.Context, id int) (domain.Book, error) {
 	var book domain.Book
-	query := fmt.Sprintf("SELECT id, title, publish_date, rating FROM %s WHERE id=$1", books)
-	if err := r.db.Get(&book, query, id); err != nil {
-		return book, err
+	err := r.db.QueryRow("SELECT id, title, author, publish_date, rating FROM books WHERE id=$1", id).
+		Scan(&book.ID, &book.Title, &book.Author, &book.PublishDate, &book.Rating)
+	if err == sql.ErrNoRows {
+		return book, domain.ErrBookNotFound
 	}
-	return book, nil
+
+	return book, err
 }
 
-func (r *BooksPostgres) GetAll() ([]domain.Book, error) {
-	var books []domain.Book
-	query := fmt.Sprintf("SELECT id, title, author, publish_date, rating FROM %s", books)
-	if err := r.db.Select(&books, query); err != nil {
+func (r *BooksPostgres) GetAll(ctx context.Context) ([]domain.Book, error) {
+	rows, err := r.db.Query("SELECT id, title, author, publish_date, rating FROM books")
+	if err != nil {
 		return nil, err
 	}
-	return books, nil
+
+	books := make([]domain.Book, 0)
+	for rows.Next() {
+		var book domain.Book
+		if err := rows.Scan(&book.ID, &book.Title, &book.Author, &book.PublishDate, &book.Rating); err != nil {
+			return nil, err
+		}
+
+		books = append(books, book)
+	}
+
+	return books, rows.Err()
 }
 
-func (r *BooksPostgres) Delete(id int) error {
-	query := fmt.Sprintf("DELETE FROM %s WHERE id=$1", books)
-	_, err := r.db.Exec(query, id)
+func (r *BooksPostgres) Delete(ctx context.Context, id int) error {
+	_, err := r.db.Exec("DELETE FROM books WHERE id=$1", id)
+
 	return err
 }
 
-func (r *BooksPostgres) Update(id int, inp domain.UpdateBookInput) error {
+func (r *BooksPostgres) Update(ctx context.Context, id int, inp domain.UpdateBookInput) error {
 	setValues := make([]string, 0)
 	args := make([]interface{}, 0)
 	argId := 1

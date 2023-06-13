@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"github.com/Asqar95/crud-app/internal/domain"
 	"github.com/jmoiron/sqlx"
 )
@@ -10,11 +11,11 @@ type Repository struct {
 }
 
 type Books interface {
-	Create(book domain.Book) (int, error)
-	GetByID(id int) (domain.Book, error)
-	GetAll() ([]domain.Book, error)
-	Delete(id int) error
-	Update(id int, inp domain.UpdateBookInput) error
+	Create(ctx context.Context, book domain.Book) (int, error)
+	GetByID(ctx context.Context, id int) (domain.Book, error)
+	GetAll(ctx context.Context) ([]domain.Book, error)
+	Delete(ctx context.Context, id int) error
+	Update(ctx context.Context, id int, inp domain.UpdateBookInput) error
 }
 
 func NewRepository(db *sqlx.DB) *Repository {
