@@ -1,4 +1,4 @@
-package handler
+package rest
 
 import (
 	"github.com/Asqar95/crud-app/internal/domain"
@@ -59,7 +59,7 @@ func (h *Handler) getBookByID(c *gin.Context) {
 		return
 	}
 
-	book, err := h.services.Books.GetByID(c, id)
+	book, err := h.services.GetByID(c, id)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"handler": "getbookbyid",

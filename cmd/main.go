@@ -9,6 +9,7 @@ import (
 	"github.com/Asqar95/crud-app/internal/service"
 	"github.com/Asqar95/crud-app/internal/transport/rest"
 	"github.com/Asqar95/crud-app/pkg/database"
+	"github.com/Asqar95/crud-app/pkg/hash"
 	_ "github.com/lib/pq"
 	log "github.com/sirupsen/logrus"
 	"net/http"
@@ -56,15 +57,21 @@ func main() {
 	}
 	defer db.Close()
 
+	hasher := hash.NewSHA1Hasher("salt")
+
 	//init deps
-	repos := repository.NewRepository(db)
-	services := service.NewService(repos)
-	handlers := handler.NewHandler(services)
+	booksRepo := repository.NewRepository(db)
+	booksService := service.NewService(booksRepo)
+
+	usersRepo := repository.NewUsers(db)
+	usersService := service.NewUsers(usersRepo, hasher, []byte("sample secret"), cfg.Auth.TokenTTL)
+
+	handler := rest.NewHandler(booksService, usersService)
 
 	// init & run server
 	srv := server.NewServer(&http.Server{
 		Addr:           fmt.Sprintf(":%d", cfg.Server.Port),
-		Handler:        handlers.Init(),
+		Handler:        handler.Init(),
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,
