@@ -14,15 +14,12 @@ func (h *Handler) singUp(c *gin.Context) {
 		return
 	}
 
-	id, err := h.userService.SignUp(c, inp)
+	err := h.userService.SignUp(c, inp)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, map[string]interface{}{
-		"id": id,
-	})
 }
 
 type singInInput struct {
@@ -38,7 +35,7 @@ func (h *Handler) singIn(c *gin.Context) {
 		return
 	}
 
-	token, err := h.userService.ParseToken(input.Password)
+	token, err := h.userService.ParseToken(input.Username, input.Password)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return

@@ -42,7 +42,7 @@ func (h *Handler) Init() *gin.Engine {
 	auth := router.Group("/auth")
 	{
 		auth.POST("/sing-up", h.singUp)
-		//auth.POST("/sing-in", h.singIn)
+		auth.GET("/sing-in", h.singIn)
 	}
 
 	book := router.Group("/book")
