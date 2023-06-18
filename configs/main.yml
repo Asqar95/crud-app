@@ -8,3 +8,6 @@ db:
   name: "crudapp"
   sslmode: "disable"
   password: "crudapp"
+
+auth:
+  token_ttl: 15m

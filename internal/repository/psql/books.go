@@ -1,43 +1,29 @@
-package repository
+package psql
 
 import (
 	"context"
 	"database/sql"
 	"fmt"
 	"github.com/Asqar95/crud-app/internal/domain"
-	"github.com/jmoiron/sqlx"
 	"strings"
 )
 
-const (
-	books = "books"
-)
-
-type BooksPostgres struct {
-	db *sqlx.DB
+type Books struct {
+	db *sql.DB
 }
 
-func NewBookPostgres(db *sqlx.DB) *BooksPostgres {
-	return &BooksPostgres{db: db}
+func NewBooks(db *sql.DB) *Books {
+	return &Books{db}
 }
 
-func (r *BooksPostgres) Create(ctx context.Context, book domain.Book) (int, error) {
-	tx, err := r.db.Begin()
-	if err != nil {
-		return 0, err
-	}
-	var bookId int
-	createBookQuery := fmt.Sprintf("INSERT INTO %s (title, author, publish_date, rating) values ($1,$2,$3,$4) RETURNING id", books)
-	row := tx.QueryRow(createBookQuery, book.Title, book.Author, book.PublishDate, book.Rating)
-	err = row.Scan(&bookId)
-	if err != nil {
-		tx.Rollback()
-		return 0, err
-	}
-	return bookId, tx.Commit()
+func (r *Books) Create(ctx context.Context, book domain.Book) error {
+	_, err := r.db.Exec("INSERT INTO books (title, author, publish_date, rating) values ($1, $2, $3, $4)",
+		book.Title, book.Author, book.PublishDate, book.Rating)
+
+	return err
 }
 
-func (r *BooksPostgres) GetByID(ctx context.Context, id int) (domain.Book, error) {
+func (r *Books) GetByID(ctx context.Context, id int64) (domain.Book, error) {
 	var book domain.Book
 	err := r.db.QueryRow("SELECT id, title, author, publish_date, rating FROM books WHERE id=$1", id).
 		Scan(&book.ID, &book.Title, &book.Author, &book.PublishDate, &book.Rating)
@@ -48,7 +34,7 @@ func (r *BooksPostgres) GetByID(ctx context.Context, id int) (domain.Book, error
 	return book, err
 }
 
-func (r *BooksPostgres) GetAll(ctx context.Context) ([]domain.Book, error) {
+func (r *Books) GetAll(ctx context.Context) ([]domain.Book, error) {
 	rows, err := r.db.Query("SELECT id, title, author, publish_date, rating FROM books")
 	if err != nil {
 		return nil, err
@@ -67,27 +53,32 @@ func (r *BooksPostgres) GetAll(ctx context.Context) ([]domain.Book, error) {
 	return books, rows.Err()
 }
 
-func (r *BooksPostgres) Delete(ctx context.Context, id int) error {
+func (r *Books) Delete(ctx context.Context, id int64) error {
 	_, err := r.db.Exec("DELETE FROM books WHERE id=$1", id)
 
 	return err
 }
 
-func (r *BooksPostgres) Update(ctx context.Context, id int, inp domain.UpdateBookInput) error {
+func (r *Books) Update(ctx context.Context, id int64, inp domain.UpdateBookInput) error {
 	setValues := make([]string, 0)
 	args := make([]interface{}, 0)
 	argId := 1
 
 	if inp.Title != nil {
 		setValues = append(setValues, fmt.Sprintf("title=$%d", argId))
+		args = append(args, *inp.Title)
+		argId++
 	}
 
 	if inp.Author != nil {
 		setValues = append(setValues, fmt.Sprintf("author=$%d", argId))
+		args = append(args, *inp.Author)
+		argId++
 	}
+
 	if inp.PublishDate != nil {
 		setValues = append(setValues, fmt.Sprintf("publish_date=$%d", argId))
-		args = append(args, *inp.PublishDate)
+		args = append(args, *inp.Author)
 		argId++
 	}
 
@@ -97,9 +88,9 @@ func (r *BooksPostgres) Update(ctx context.Context, id int, inp domain.UpdateBoo
 		argId++
 	}
 
-	setQuery := strings.Join(setValues, ",")
+	setQuery := strings.Join(setValues, ", ")
 
-	query := fmt.Sprintf("UPDATE books SET %s WHERE id=$%d", setQuery, argId)
+	query := fmt.Sprintf("UPDATE books SET %s WHERE id=%d", setQuery, argId+1)
 	args = append(args, id)
 
 	_, err := r.db.Exec(query, args...)

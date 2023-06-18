@@ -1,16 +1,16 @@
-package repository
+package psql
 
 import (
 	"context"
+	"database/sql"
 	"github.com/Asqar95/crud-app/internal/domain"
-	"github.com/jmoiron/sqlx"
 )
 
 type Users struct {
-	db *sqlx.DB
+	db *sql.DB
 }
 
-func NewUsers(db *sqlx.DB) *Users {
+func NewUsers(db *sql.DB) *Users {
 	return &Users{db}
 }
 

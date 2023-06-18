@@ -1,8 +1,8 @@
 package database
 
 import (
+	"database/sql"
 	"fmt"
-	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
 
@@ -15,8 +15,8 @@ type ConnectionInfo struct {
 	Password string
 }
 
-func NewPostgresConnection(info ConnectionInfo) (*sqlx.DB, error) {
-	db, err := sqlx.Open("postgres", fmt.Sprintf("host=%s port=%d user=%s dbname=%s sslmode=%s password=%s",
+func NewPostgresConnection(info ConnectionInfo) (*sql.DB, error) {
+	db, err := sql.Open("postgres", fmt.Sprintf("host=%s port=%d user=%s dbname=%s sslmode=%s password=%s",
 		info.Host, info.Port, info.Username, info.DBName, info.SSLMode, info.Password))
 	if err != nil {
 		return nil, err

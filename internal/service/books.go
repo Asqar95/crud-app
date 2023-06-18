@@ -3,37 +3,47 @@ package service
 import (
 	"context"
 	"github.com/Asqar95/crud-app/internal/domain"
-	"github.com/Asqar95/crud-app/internal/repository/psql"
 	"time"
 )
 
-type BooksService struct {
-	repo repository.Books
+type BooksRepository interface {
+	Create(ctx context.Context, book domain.Book) error
+	GetByID(ctx context.Context, id int64) (domain.Book, error)
+	GetAll(ctx context.Context) ([]domain.Book, error)
+	Delete(ctx context.Context, id int64) error
+	Update(ctx context.Context, id int64, inp domain.UpdateBookInput) error
 }
 
-func NewBooksService(repo repository.Books) *BooksService {
-	return &BooksService{repo: repo}
+type Books struct {
+	repo BooksRepository
 }
 
-func (s *BooksService) Create(ctx context.Context, book domain.Book) (int, error) {
+func NewBooks(repo BooksRepository) *Books {
+	return &Books{
+		repo: repo,
+	}
+}
+
+func (s *Books) Create(ctx context.Context, book domain.Book) error {
 	if book.PublishDate.IsZero() {
 		book.PublishDate = time.Now()
 	}
+
 	return s.repo.Create(ctx, book)
 }
 
-func (s *BooksService) GetByID(ctx context.Context, id int) (domain.Book, error) {
+func (s *Books) GetByID(ctx context.Context, id int64) (domain.Book, error) {
 	return s.repo.GetByID(ctx, id)
 }
 
-func (s *BooksService) GetAll(ctx context.Context) ([]domain.Book, error) {
+func (s *Books) GetAll(ctx context.Context) ([]domain.Book, error) {
 	return s.repo.GetAll(ctx)
 }
 
-func (s *BooksService) Delete(ctx context.Context, id int) error {
+func (s *Books) Delete(ctx context.Context, id int64) error {
 	return s.repo.Delete(ctx, id)
 }
 
-func (s *BooksService) Update(ctx context.Context, id int, inp domain.UpdateBookInput) error {
+func (s *Books) Update(ctx context.Context, id int64, inp domain.UpdateBookInput) error {
 	return s.repo.Update(ctx, id, inp)
 }
