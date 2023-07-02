@@ -6,7 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Asqar95/crud-app/internal/domain"
+	audit "github.com/Asqar95/crud-audit-log/pkg/domain"
 	"github.com/golang-jwt/jwt"
+	"github.com/sirupsen/logrus"
 	"strconv"
 	"time"
 )
@@ -21,20 +23,26 @@ type UsersRepository interface {
 	GetByCredentials(ctx context.Context, email, password string) (domain.User, error)
 }
 
+type AuditClient interface {
+	SendLogRequest(ctx context.Context, req audit.LogItem) error
+}
+
 type Users struct {
 	repo   UsersRepository
 	hasher PasswordHasher
 
-	hmacSecret []byte
-	tokenTtl   time.Duration
+	auditClient AuditClient
+	hmacSecret  []byte
+	tokenTtl    time.Duration
 }
 
-func NewUsers(repo UsersRepository, hasher PasswordHasher, secret []byte, ttl time.Duration) *Users {
+func NewUsers(repo UsersRepository, auditClient AuditClient, hasher PasswordHasher, secret []byte, ttl time.Duration) *Users {
 	return &Users{
-		repo:       repo,
-		hasher:     hasher,
-		hmacSecret: secret,
-		tokenTtl:   ttl,
+		repo:        repo,
+		hasher:      hasher,
+		hmacSecret:  secret,
+		auditClient: auditClient,
+		tokenTtl:    ttl,
 	}
 }
 
@@ -51,7 +59,27 @@ func (s *Users) SignUp(ctx context.Context, inp domain.SignUpInput) error {
 		RegisteredAt: time.Now(),
 	}
 
-	return s.repo.Create(ctx, user)
+	if err := s.repo.Create(ctx, user); err != nil {
+		return err
+	}
+
+	user, err = s.repo.GetByCredentials(ctx, inp.Email, password)
+	if err != nil {
+		return err
+	}
+
+	if err := s.auditClient.SendLogRequest(ctx, audit.LogItem{
+		Action:    audit.ACTION_REGISTER,
+		Entity:    audit.ENTITY_USER,
+		EntityID:  strconv.FormatInt(user.ID, 10),
+		Timestamp: time.Now(),
+	}); err != nil {
+		logrus.WithFields(logrus.Fields{
+			"method": "Users.SignUp",
+		}).Error("failed to send log request:", err)
+	}
+
+	return nil
 }
 
 func (s *Users) SignIn(ctx context.Context, inp domain.SignInInput) (string, error) {
