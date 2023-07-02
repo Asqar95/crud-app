@@ -1,22 +1,39 @@
-version: '3.8'
-services:
-#  app:
-#    build: ./
-#    ports:
-#      - 8000:8080
-#    depends_on:
-#     - db
+version: '3.9'
 
-  db:
-    image: postgres:15
-    restart: always
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-    ports:
-      - '5432:5432'
-    volumes:
-      - db:/var/lib/postgresql/data
+networks:
+  crud-app:
+    driver: bridge
 
 volumes:
   db:
+
+services:
+  app:
+    build: ./
+    ports:
+      - 8080:8080
+    networks:
+      - crud-app
+    environment:
+      DB_HOST: "postgres"
+      DB_PORT: 5432
+      DB_USERNAME: "crudapp"
+      DB_PASSWORD: "crudapp"
+      DB_NAME: "crudapp"
+      DB_SSLMODE: "disable"
+    depends_on:
+     - postgres
+
+  postgres:
+    image: postgres:13.3
+    restart: always
+    networks:
+      - crud-app
+    environment:
+      POSTGRES_DB: "crudapp"
+      POSTGRES_USER: "crudapp"
+      POSTGRES_PASSWORD: "crudapp"
+    ports:
+      - 5432:5432
+    volumes:
+      - db:/var/lib/postgresql/data
