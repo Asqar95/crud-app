@@ -23,26 +23,31 @@ type UsersRepository interface {
 	GetByCredentials(ctx context.Context, email, password string) (domain.User, error)
 }
 
+type SessionsRepository interface {
+	Create(ctx context.Context, token domain.RefreshSession) error
+	Get(ctx context.Context, token string) (domain.RefreshSession, error)
+}
+
 type AuditClient interface {
 	SendLogRequest(ctx context.Context, req audit.LogItem) error
 }
 
 type Users struct {
-	repo   UsersRepository
-	hasher PasswordHasher
-
-	auditClient AuditClient
-	hmacSecret  []byte
-	tokenTtl    time.Duration
+	repo         UsersRepository
+	hasher       PasswordHasher
+	sessionsRepo SessionsRepository
+	auditClient  AuditClient
+	hmacSecret   []byte
+	tokenTtl     time.Duration
 }
 
-func NewUsers(repo UsersRepository, auditClient AuditClient, hasher PasswordHasher, secret []byte, ttl time.Duration) *Users {
+func NewUsers(repo UsersRepository, sessionsRepo SessionsRepository, auditClient AuditClient, hasher PasswordHasher, secret []byte) *Users {
 	return &Users{
-		repo:        repo,
-		hasher:      hasher,
-		hmacSecret:  secret,
-		auditClient: auditClient,
-		tokenTtl:    ttl,
+		repo:         repo,
+		sessionsRepo: sessionsRepo,
+		hasher:       hasher,
+		auditClient:  auditClient,
+		hmacSecret:   secret,
 	}
 }
 
@@ -71,7 +76,7 @@ func (s *Users) SignUp(ctx context.Context, inp domain.SignUpInput) error {
 	if err := s.auditClient.SendLogRequest(ctx, audit.LogItem{
 		Action:    audit.ACTION_REGISTER,
 		Entity:    audit.ENTITY_USER,
-		EntityID:  strconv.FormatInt(user.ID, 10),
+		EntityID:  user.ID,
 		Timestamp: time.Now(),
 	}); err != nil {
 		logrus.WithFields(logrus.Fields{

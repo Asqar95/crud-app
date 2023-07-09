@@ -17,3 +17,5 @@ CREATE TABLE users
     password VARCHAR(255) NOT NULL DEFAULT '',
     registered_at TIMESTAMP NOT NULL DEFAULT (now())
 );
+
+

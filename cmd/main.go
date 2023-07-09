@@ -5,6 +5,7 @@ import (
 	"github.com/Asqar95/crud-app/internal/config"
 	"github.com/Asqar95/crud-app/internal/repository/psql"
 	"github.com/Asqar95/crud-app/internal/service"
+	grpc_client "github.com/Asqar95/crud-app/internal/transport/grpc"
 	"github.com/Asqar95/crud-app/internal/transport/rest"
 	"github.com/Asqar95/crud-app/pkg/database"
 	"github.com/Asqar95/crud-app/pkg/hash"
@@ -59,7 +60,10 @@ func main() {
 	booksService := service.NewBooks(booksRepo)
 
 	usersRepo := psql.NewUsers(db)
-	usersService := service.NewUsers(usersRepo, hasher, []byte("sample secret"), cfg.Auth.TokenTTL)
+	tokensRepo := psql.NewTokens(db)
+
+	auditClient, err := grpc_client.NewClient(9000)
+	usersService := service.NewUsers(usersRepo, tokensRepo, auditClient, hasher, []byte("sample secret"))
 
 	handler := rest.NewHandler(booksService, usersService)
 
